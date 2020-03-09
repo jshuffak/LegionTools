@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Legion Tools</title>
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript" src="Retainer/scripts/gup.js"></script>
+		<script type="text/javascript" src="Retainer/scripts/trigger.js"></script>
+		<!-- <script type="text/javascript" src="scripts/getMoneyOwed.js"></script> -->
+		<script type="text/javascript" src="Retainer/scripts/writeNumOnline.js"></script>
+		<script type="text/javascript" src="Retainer/scripts/bootstrap.touchspin.js"></script>
+		<script type="text/javascript" src="Retainer/scripts/hitsOverview.js"></script>
+		<script type="text/javascript" src="Retainer/scripts/jquery.blockUI.js"></script>
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+		<script> var baseURL = "<?php include('config.php'); echo $baseURL; ?>"; </script>
+
+		<!-- <script type="text/javascript" src="hello_world.js"></script> -->
+
+
+		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+		<link rel="stylesheet" href="Retainer/style/trigger.css">
+		<link href="css/style.css" rel="stylesheet">
+	</head>
+	<body>
+
+		<div class="page-header" style="height:70px; margin:0px; background-color:white; padding-left:10px;">
+			<div style="display:inline-block;">
+				<h1 style="font-family: 'Open Sans Condensed', sans-serif; font-variant:small-caps;">LegionTools</h1>
+			</div>
+			<div style="display:inline-block; float:right;">
+				<a href="./guide.php" target="_blank">User Guide</a>
+				<a href="http://web.eecs.umich.edu/~wlasecki/croma.html" target="_blank"><img src="static/img/CROMA_logo.png" alt="IBM" height="70px"></a>
+			</div>
+		</div>
+
+		<div class="blocky">
+			<div class="container">
+				<!-- 
+	    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+	    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+	    %%%%%                                                                                            %%%%
+	    %%%%%                                        Modals                                              %%%%
+	    %%%%%                                                                                            %%%%
+	    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+	    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+				-->
+				<div id = "loginModal" class="modal fade">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<!-- <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> -->
+								<h4 class="modal-title"><b>Welcome to LegionTools!</b></h4>
+								</br>
+								<p> LegionTools allows users to easily recruit and route Amazon Mechanical Turk (AMT) workers for synchronous realtime crowdsourcing tasks.</p>
+								</br>
+								<p> For more details, read the <a href="./guide.php" target="_blank">Legion Tools User Guide</a>.</p>  
+							</div>
+							<div class="modal-body">
+								Please log in with your AMT keys. Your keys are never stored on our server without your consent.
+								</br>
+								<input id = "modalAccessKey" type="text" class="form-control" name="accessKey" placeholder="Access Key" required="" autofocus="" />
+								<input id = "modalSecretKey" type="text" class="form-control" name="secretKey" placeholder="Secret Key" required=""/>
+								</br>
+								<p>LegionTools was originally developed by Mitchell Gordon and Walter Lasecki at the University of Rochester, and is currently maintained by Sai Gouravajhala, Alan Lundgard, and Walter Lasecki.</p> 
+
+							</div>
+							<div class="modal-footer">
+								<!-- <button type="button" class="btn btn-default" data-dismiss="modal">Close</button> -->
+								<button id = "modalLoginButton" type="button" class="btn btn-primary">Login</button>
+							</div>
+						</div><!-- /.modal-content -->
+					</div><!-- /.modal-dialog -->
+				</div><!-- /.modal -->
+
+
+				<!-- Modal for waiting instructions -->
+				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+								<h4 class="modal-title">Edit waiting page instructions</h4>
+							</div>
+							<div class="modal-body">
+								<textarea id = "waitingInstructions" class="form-control" rows="5"></textarea>
+							</div>
+							<div class="modal-footer">
+								<button id="waitingInstructionsUpdated" type="button" class="btn btn-primary" data-dismiss="modal">Save and close</button>
+								<!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Modal for confirming bonus amount -->
+				<div class="modal fade" id="bonusModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+								<h4 class="modal-title">Do you want to bonus the following amount?</h4>
+							</div>
+							<div class="modal-body">
+								<br />
+								<p>Bonus Amount (in dollars):</p>
+								<input id = "modalBonusAmount" type="text" class="form-control" name="bonusAmountField" placeholder="0.01" required="" autofocus="" />
+								<br /><p>Reason:</p>
+								<input id = "modalBonusReason" type="text" class="form-control" name="bonusReasonField" required="" value="Great work." />
+								<br /><p>Worker ID:</p>
+								<input id = "modalBonusWorkerId" type="text" class="form-control" name="bonusWorkerIdField" required="" readonly />
+								<br /><p>Assignment ID:</p>
+								<input id = "modalBonusAssignmentId" type="text" class="form-control" name="bonusAIDField" required="" readonly />
+							</div>
+							<div class="modal-footer">
+								<button id="sendBonusButtonInModal" type="button" class="btn btn-primary" data-dismiss="modal">Send Bonus</button>
+								<!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Modal for info box (Sandbox/live) -->
+				<div id="infoModal-SandboxLive" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Sandbox mode and Live mode</h5>
+								<!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		<span aria-hidden="true">&times;</span>
+		</button> -->
+							</div>
+							<div class="modal-body">
+								<p>Sandbox mode allows you to test your HIT for free at <a href="https://workersandbox.mturk.com" target="_blank">https://workersandbox.mturk.com</a> before you post it live.</p>
+								<br>
+								<p>Live mode actually posts your HIT to Mechanical Turk at <a href="https://www.mturk.com" target="_blank">https://www.mturk.com</a> for workers to complete.</p>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+								<!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Modal for info box (Require unique workers) -->
+				<div id="infoModal-RequireUniqueWorkers" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Requiring unique workers</h5>
+								<!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		<span aria-hidden="true">&times;</span>
+		</button> -->
+							</div>
+							<div class="modal-body">
+								<p>Requiring unique workers prevents the same worker from completing your HIT multiple times. This requires temporarily storing your MTurk Access and Secret keys on our server.</p>
+								<br>
+								<p>You can reset the history of unique workers by clicking the Reset History button.</p>
+								<br>
+								<p>You can delete your MTurk keys from our server by clicking the Delete Keys button.</p>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+								<!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Modal for info box (Num HITs and Num Assignments) -->
+				<div id="infoModal-HitsAssignments" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Number of HITs and Number of Assignments</h5>
+								<!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		<span aria-hidden="true">&times;</span>
+		</button> -->
+							</div>
+							<div class="modal-body">
+								<p>Num HITs is the number of individual HITs you would like to post.</p>
+								<br>
+								<p>Num Assignments is the number of times you would like each individual HIT to be completed.</p>
+								<br>
+								<p>For example, if you set number of HITs to 2 and number of assignments to 3, then each of the 2 HITs will be completed by 3 workers for a total of 6 worker responses.</p>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+								<!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Modal for info box (Load / Approve / Dispose all hits) -->
+				<div id="infoModal-LoadApproveDisposeAll" class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="exampleModalLabel">Number of HITs and Number of Assignments</h5>
+								<!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		<span aria-hidden="true">&times;</span>
+		</button> -->
+							</div>
+							<div class="modal-body">
+								<p>Clicking Load Hits gathers all of your completed HITs for your approval or rejection.</p>
+								<br>
+								<p>You can approve HITs individually or all at once by clicking Approve All Loaded Hits.</p>
+								<br>
+								<p>After submitting optional bonuses to workers, you can dispose HITs (send workers their bonuses) individually or all at once by clicking Dispose All Loaded HITs.</p>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+								<!-- <button type="button" class="btn btn-primary">Save changes</button> -->
+							</div>
+						</div>
+					</div>
+				</div>
+
+
+
+
+				<!-- 
+	    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+	    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+	    %%%%%                                                                                            %%%%
+	    %%%%%                                        Panels                                              %%%%
+	    %%%%%                                                                                            %%%%
+	    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+	    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+				-->
+
+				<div class="row">
+					<div class="col-md-6">
+						<div class="cool-block">
+							<div class="cool-block-bor">
+								<ul class="nav nav-tabs">
+									<li class="active"><a data-toggle="tab" href="#sectionA">Load Panel</a></li>
+									<li id = "recruitingTabLi" class = "disabled"><a data-toggle="tab" href="#sectionB">Recruiting Panel</a></li>
+								</ul>
+								<div class="tab-content">
+									<!-- Load Panel -->
+									<div id="sectionA" class="tab-pane fade in active">
+										<br />
+										<span class="grandTitre text-primary">Load an old experiment</span>
+										<form class="form-horizontal" role="form">
+											<div class="form-group air">  
+												<label class="sr-only" for="taskSessionLoad">Load an old experiment</label>
+												<div class="col-lg-4 pull-right">
+													<select id = "taskSessionLoad" class="form-control"></select>  
+												</div>
+												<button type="button" id='deleteExperiment' disabled='disabled' class="btn btn-danger pull-right" style='margin-left:10px;'>Delete</button>
+												<button type="button" id='copyExperiment' disabled='disabled' class="btn btn-default pull-right">Copy</button>
+											</div>
+											<!-- <button type="submit" id="loadTask" class="btn btn-default">Load</button> -->
+										</form>
+
+										<span class="grandTitre text-primary">OR create a new experiment</span>
+										<form class="form-horizontal" role="form">
+											<div class="form-group air">
+												<label for="taskSession" class="col-sm-4 control-label">Experiment Name (Remember This):</label>
+												<div class="col-sm-8">
+													<input type="text" class="form-control" id="taskSession" placeholder="Enter a task session name">
+												</div>
+											</div>
+											<div class="form-group air">
+												<label for="hitTitle" class="col-sm-4 control-label">HIT Title</label>
+												<div class="col-sm-8">
+													<input type="text" class="form-control" id="hitTitle" maxlength="128" placeholder="Enter HIT title (max 128 characters)">
+												</div>
+											</div>
+											<div class="form-group air">
+												<label for="hitDescription" class="col-sm-4 control-label">HIT Description</label>
+												<div class="col-sm-8">
+													<input type="text" class="form-control" id="hitDescription" maxlength="2000" placeholder="Enter HIT description (max 2000 characters)">
+												</div>
+											</div>
+											<div class="form-group air">
+												<label for="hitKeywords" class="col-sm-4 control-label">HIT Keywords</label>
+												<div class="col-sm-8">
+													<input type="text" class="form-control" id="hitKeywords" placeholder="Enter HIT keywords (comma-separated)">
+												</div>
+											</div>
+											<div class="form-group row">
+												<label for="country" class="col-sm-4 control-label">Worker Country</label>
+												<div class="col-sm-3">
+													<select id = "country" class="form-control">
+														<option>All</option>
+														<option>US</option>
+													</select>
+												</div>
+												<label for="percentApproved" class="col-sm-3 control-label">Min % approved</label>
+												<div class="col-sm-2">
+													<input type="number" min = "0" max = "100" class="form-control text-center" id="percentApproved" value = "0">
+												</div>
+											</div>
+
+											<div class="form-group air">
+												<div class="col-lg-offset-2 col-lg-10">
+													<div class="cta">
+														<div class="cta-buttons">
+															<button type="submit" id="addNewTask" class="btn btn-info btn-lg pull-right">Add new experiment</button>
+															<button disabled="disabled" type="submit" id="updateTask" class="btn btn-default btn-lg pull-right">Update</button>
+														</div>
+													</div>
+												</div>
+											</div>
+										</form>
+									</div>
+									<!--/ End Load Panel-->
+
+									<!-- Recruiting Panel -->
+									<div id="sectionB" class="tab-pane fade">
+										<div id = "recruitingDiv">
+											<span class="grandTitre text-primary">Recruiting</span>
+											<br /><br />
+											<form class="form-horizontal" role="form">
+												<div class="form-group">
+													<div class="col-lg-offset-1 col-lg-10">
+														<div class="btn-group">
+															<button id="yesSandbox" type="button" class="btn btn-lg btn-default active">Sandbox</button>
+															<button id="noSandbox" type="button" class="btn btn-lg btn-default">Live</button>
+														</div>
+														<button type="button" class="btn btn-primary btn-circle btn-xs" onclick="$('#infoModal-SandboxLive').modal('show');">
+															<span class="glyphicon glyphicon-info-sign"></span>
+														</button>
+													</div>
+												</div>
+
+												<div class="form-group">
+
+													<div class="col-lg-10 col-lg-offset-1">
+														<div class="input-group">
+															<span class="input-group-addon">Access Key</span>
+															<input type="text" id="accessKey" class="form-control" placeholder="Optional, can also edit amtKeys.php">
+														</div>
+													</div>
+												</div>
+
+												<div class="form-group">
+													<div class="col-lg-10 col-lg-offset-1">
+														<div class="input-group">
+															<span class="input-group-addon">Secret Key</span>
+															<input type="text" id="secretKey" class="form-control" placeholder="Optional, can also edit amtKeys.php">
+														</div>
+														<div class="checkbox">
+															<label>
+																<input id = "requireUniqueWorkers" class="form-check-input" type="radio" value="">
+																Require unique workers
+															</label>&nbsp;
+															<!-- <div class="btn-group"> -->
+															<button id="resetUniqueWorkers" class="btn btn-danger btn-sm">Reset History</button>
+															<button id="deleteMturkKeys" class="btn btn-info btn-sm">Delete Keys</button>
+															<button type="button" class="btn btn-primary btn-circle btn-xs" onclick="$('#infoModal-RequireUniqueWorkers').modal('show');">
+																<span class="glyphicon glyphicon-info-sign"></span>
+															</button>
+
+															<!-- </div> -->
+														</div>
+													</div>
+												</div>
+												<div class="form-group">
+													<label class=" col-lg-offset-1 col-lg-6 control-label">For account balance, visit <a href="https://requester.mturk.com/mturk/youraccount" target="_blank">here.</a></label>
+												</div>
+												<div class="form-group">
+													<!-- Nav tabs -->
+													<ul class="nav nav-tabs" role="tablist">
+														<li id = "useRetainerMode" class="active"><a href="#retainerTab" role="tab" data-toggle="tab">Retainer</a></li>
+														<!-- <li id = "useAutoMode"><a href="#retainerTab" role="tab" data-toggle="tab">Auto</a></li> -->
+														<li id = "useDirectMode"><a href="#directTab" role="tab" data-toggle="tab">Direct (Classic)</a></li>
+													</ul>
+												</div>
+											</form>
+											<!-- Tab panes -->
+
+
+
+
+
+
+
+											<div class="tab-content">
+												<div class="tab-pane active" id="retainerTab">
+													<div id="touchSpinDiv">
+
+														<form class="form-horizontal" role="form">
+
+															<div class="form-group someAirForRecruitingPanel">
+																<label class="col-lg-6 col-lg-offset-1 control-label">Target number of assignable HITs</label>
+															</div>
+
+															<div class="form-group someAirForRecruitingPanel">
+																<div class="col-lg-10 col-lg-offset-1">
+																	<input id="currentTarget" class="text-center" type="text" value="0" name="currentTarget">
+																</div> 
+
+																<script>
+																	$("input[name='currentTarget']").TouchSpin({
+																		min: 0,
+																		max: 100,
+																		mousewheel: false
+																	});
+																</script>
+
+															</div>
+														</form>
+													</div>
+
+													<div id="priceRangeDiv"><p><form class="form-horizontal" role="form">
+															<div class="form-group someAirForRecruitingPanel">
+																<div class="col-lg-5 col-lg-offset-1">
+																	<label for="minPrice">Min task price (cents)</label>
+																	<input type="text" class="form-control" id="minPrice" placeholder="Min price in cents">
+
+																	<script>
+																		$('#minPrice').on('input', function(e){
+																			if($('#minPrice').val() === '0') {
+																				alert('Warning: HITs with a price of $0.00 will not be shown to MTurk workers by default. This means you will not see your HIT if you search for it in MTurk. Refer to the "Setting the HIT price to $0.00" section in the LegionTools User Guide.');
+																			}
+																		});
+																	</script>
+																</div> 
+																<div class="col-lg-5">
+																	<label for="maxPrice">Max task price (cents)</label>
+																	<input type="text" class="form-control" id="maxPrice" placeholder="Max price in cents">
+																</div>
+																<div class="col-lg-10 col-lg-offset-1">
+																	<br/>
+																	<label for="thirdPartyUrl">Instructions Page</label>
+																	<input type="text" class="form-control" id="instrPage" placeholder="Workers will see this page before they accept the HIT">
+																	<br/>
+																	<label for="thirdPartyUrl">Tutorial Page</label>
+																	<input type="text" class="form-control" id="tutPage" placeholder="Tutorial URL to route workers">
+																	<br/>
+																	<label for="thirdPartyUrl">Post-Tutorial Waiting Page</label>
+																	<input type="text" class="form-control" id="waitPage" placeholder="Workers will see this page after successful tutorial completion">
+																</div>
+															</div>
+															<!-- <button type="submit" id="updatePrice" class="btn btn-default">Update</button> -->
+														</form></p></div>
+
+														<!-- Button trigger modal -->
+														<form class="form-horizontal" role="form">
+															<div class="form-group someAirForRecruitingPanel">
+																<div class="col-lg-offset-1 col-lg-10">
+																	<div class="cta">
+																		<div class="cta-buttons">
+																			<button type = "button" id="openInstructionsModal" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Edit waiting page instructions</button> &nbsp;
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</form>
+														<form id = "autoSendToURLForm" class="form-horizontal forAutoTab" role="form">
+															<div class="form-group">
+																<div class="col-lg-offset-1 col-lg-10">
+																	<label for="autoSendToURL" class="col-sm-2 control-label">URL</label>
+																	<div class="col-sm-10">
+																		<input type="text" class="form-control" id="autoSendToURL" placeholder="USE HTTPS! Enter URL to send workers to">
+																	</div>
+																</div>
+															</div>
+														</form>
+
+														<form class="form-horizontal" role="form">
+															<div id = "startStopButtons">
+																<div class="form-group someAirForRecruitingPanel">
+																	<div class="col-lg-offset-1 col-lg-10">
+																		<div class="cta">
+																			<div class="cta-buttons">
+																				<button type="submit" id="startRecruiting" class="btn btn-info btn-lg">Start recruiting</button> &nbsp;
+																				<button type="submit" id="stopRecruiting" class="btn btn-danger btn-lg">Stop recruiting</button> 
+																			</div>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</form>
+												</div>
+
+												<div class="tab-pane" id="directTab">
+													<br/>
+													<form id = "directModeForms" class="form-horizontal" role="form">
+														<div class="form-group someAirForRecruitingPanel">
+
+															<div class="col-lg-offset-1 col-lg-10">
+																<label for="sendToURL" class="col-sm-2 control-label">URL</label>
+																<div class="col-sm-10">
+																	<!--<input type="text" class="form-control" id="directModeInstrPage" placeholder="Instructions Page">-->
+																	<input type="text" class="form-control" id="sendToURL" placeholder="USE HTTPS! Enter URL to send workers to">
+																</div>
+															</div>
+														</div>
+
+														<div class="form-group someAirForRecruitingPanel">
+
+															<div class="col-lg-offset-1 col-lg-10">
+																<label for="sendToURL" class="col-sm-4 control-label">Price (cents)</label>
+																<div class="col-sm-8">
+																	<input type="text" class="form-control" id="price" placeholder="Price in cents">
+																</div>
+
+																<script>
+																	$('#price').on('input', function(e){
+																		if($('#price').val() === '0') {
+																			alert('Warning: HITs with a price of $0.00 will not be shown to MTurk workers by default. This means you will not see your HIT if you search for it in MTurk. Refer to the "Setting the HIT price to $0.00" section in the LegionTools User Guide.');
+																		}
+																	});
+																</script>
+															</div>
+
+														</div>
+
+														<div class="form-group">
+															<div class="col-sm-12">
+
+																<div class="form-group row someAirForRecruitingPanel">
+																	<div class="col-lg-offset-1 col-lg-12">
+
+																		<label for="numHITs" class="col-sm-4 control-label">
+																			Num HITs
+																		</label>
+
+																		<!-- <div class="btn-group"> -->
+																		<div class="col-sm-4">
+																			<input type="text" class="form-control" id="numHITs" placeholder="">
+																		</div>
+
+																		<!-- <button class="btn btn-primary btn-circle btn-xs"
+			  onclick="alert('This is the number of individual HITs you would like to post.'); return false;">
+			  <span class="glyphicon glyphicon-info-sign"></span>
+			  </button> -->
+			  <!-- </div> -->
+																	</div>
+																</div>
+
+																<div class="form-group row someAirForRecruitingPanel">
+																	<div class="col-lg-offset-1 col-lg-12">
+
+																		<label for="numAssignments" class="col-sm-4 control-label">
+																			Num Assignments 
+																		</label>
+
+																		<!-- <div class="btn-group"> -->
+																		<div class="col-sm-4">
+																			<input type="text" class="form-control" id="numAssignments" placeholder="">
+																		</div>
+
+																		<button type="button" class="btn btn-primary btn-circle btn-xs" onclick="$('#infoModal-HitsAssignments').modal('show');">
+																			<span class="glyphicon glyphicon-info-sign"></span>
+																		</button>
+																		<!-- </div> -->
+																	</div>
+																</div>
+															</div>
+
+														</div>
+
+													</form>
+													<form class="form-horizontal" role="form">
+														<div id = "postExpireButtons">
+
+															<div class="form-group someAirForRecruitingPanel">
+																<div class="col-lg-offset-1 col-lg-8">
+																	<div class="cta">
+																		<div class="cta-buttons">
+																			<button type="submit" id="postHITs" class="btn btn-info btn-lg">Post HITs</button>
+																			<button type="submit" id="expireHITs" class="btn btn-danger btn-lg">Expire All HITs</button>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</div>
+
+													</form>
+												</div>
+
+											</div>
+
+										</div>
+									</div>
+									<!-- End Recruiting Panel -->
+								</div>
+							</div>
+						</div>
+
+
+						<!-- Debug button -->
+						<div class="cool-block">
+							<!-- <button type="submit" id="debugButton" class="btn btn-info btn-lg pull-right">DEBUG</button> -->
+							<div class="cool-block-bor">
+								<p id="statusbar"></p>
+							</div>
+						</div>
+
+
+					</div>
+					<div class="col-md-6">
+						<!-- Overview Tab -->
+						<div id = "overview">
+							<div class="cool-block">
+								<div class="cool-block-bor">
+									<span class="grandTitre text-primary">Overview</span>
+									<br /><br />
+									<form role="form" class="form-horizontal">
+										<div class="cta">
+											<!-- <div class="cta-buttons btn-group"> -->
+											<button type="submit" id="reloadHits" class="btn btn-info btn-sm">Load all reviewable HITs</button> &nbsp;
+											<button type="submit" id="approveAll" class="btn btn-success btn-sm">Approve all loaded HITs</button> &nbsp;
+											<button type="submit" id="disposeAll" class="btn btn-warning btn-sm">Dispose all loaded HITs</button>
+											<button type="button" class="btn btn-primary btn-circle btn-xs" onclick="$('#infoModal-LoadApproveDisposeAll').modal('show');">
+												<span class="glyphicon glyphicon-info-sign"></span>
+											</button>
+											<!-- </div> -->
+										</div>
+									</form>
+									</br>
+									<ul class="list-group" id="hitsList">
+									</ul>
+								</div>
+								<!-- <div class="col-sm-6"> -->
+								</div>
+							</div>
+							<!--/ Overview Tab -->
+
+
+							<!-- Workers Tab -->
+							<div id = "triggerDiv">
+								<div class="cool-block">
+									<div class="cool-block-bor">
+										<span class="grandTitre text-primary">Workers ready</span>
+										<p id = "numOnlineText"><span id="numOnline">x</span></p>
+										<form class="form-horizontal" role="form">
+											<div class="form-group">
+												<div class="col-lg-10 col-lg-offset-1">
+													<input type="text" class="form-control" id="fireToURL" placeholder="Use HTTPs enter URL to send workers to ...">
+												</div>
+											</div>
+
+											<div class="form-group">
+												<div class="col-lg-10 col-lg-offset-1">
+													<input type="text" class="form-control" id="numFire" placeholder="Number of workers to route">
+												</div>
+											</div>                          
+
+											<div class="form-group" id = "fireButtonsGroup">
+												<div class="col-lg-offset-1 col-lg-10">
+													<div class="cta">
+														<div class="cta-buttons pull-right">
+															<button type="submit" id="fireWorkers" class="btn btn-info btn-sm">Route!</button> &nbsp;
+															<button type="submit" id="clearQueue" class="btn btn-danger btn-sm">Clear entire queue (pays workers)</button> 
+															<!--    <div id="checkBoxes">
+		       <form id="checkBoxesCounts">
+		       <table>
+		       <div id="dynamicCheckBoxes">
+
+		       </div>
+		       </table>
+		       </form>
+		       </div>
+															-->
+														</div>
+													</div>
+												</div>
+											</div>
+										</form>
+
+
+									</div>
+								</div>
+							</div>
+
+							<!--/ End Workers Tab -->
+
+						</div>
+					</div>
+	</body>
+
+	<footer class="footer">
+		<span class="text-muted text-center">
+			Supported in part by
+			<a href="https://www.ibm.com"><img src="static/img/IBM_logo.png" alt="IBM" height="90%"></a>
+			<a href="https://www.umich.edu/"><img src="static/img/UM_logo.png" alt="IBM" height="100%"></a>
+		</span>
+	</footer>
+
+</html>
