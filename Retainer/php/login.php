@@ -1,5 +1,6 @@
 <?php
-
+error_log(".:: ".basename(__FILE__),0); // Debugging
+	
 $accessKey = $_REQUEST['accessKey'];
 $secretKey = $_REQUEST['secretKey'];
 
@@ -63,7 +64,19 @@ try {
         "workerId" text,
         "projectName" text
     );
-    ';
+    CREATE TABLE IF NOT EXISTS "retainerRoutingCheck" (
+        "id" INTEGER PRIMARY KEY,
+        "workerId" text,
+        "checked" text
+    );
+    CREATE TABLE IF NOT EXISTS "bonusLog" (
+        "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+        "workerId" text,
+        "assignmentId" text,
+        "bonusAmount" INTEGER,
+        "authHash" text,
+        "creationTime" text
+    );';
 
 	$dbh->exec($sql);
 } catch(PDOException $e) {

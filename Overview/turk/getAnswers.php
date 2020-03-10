@@ -7,24 +7,32 @@ set_time_limit ( 10000);
 include("../../amtKeys.php");
 include("../../config.php");
 include("../../isSandbox.php");
-include("../../getDB.php");
 include 'turk_functions.php';
 
 $AccessKey = $_REQUEST['accessKey'];
 $SecretKey = $_REQUEST['secretKey'];
 
+$task = $_REQUEST['task'];
+error_log("Task name: ".$task);
+
+// include("../../ChromePhp.php"); 
+
+// If key specifies use_file, use SQLite
 if($_REQUEST['accessKey'] == "use_file" && $_REQUEST['secretKey'] == "use_file"){
 	$tableName = 'retainer.db';
 }
 else {
-    $hash1= hash('sha256', $_REQUEST['accessKey']) . hash('sha256', $_REQUEST['secretKey']);
-    $tableName = hash('sha256', $hash1); 
+	$hash1= hash('sha256', $_REQUEST['accessKey']) . hash('sha256', $_REQUEST['secretKey']);
+	$tableName = hash('sha256', $hash1); 
+	// ChromePhp::log('Hello console!');
+	// ChromePhp::log($_SERVER);
+	// ChromePhp::warn('something went wrong!');
 }
 try {
-    $dbh = getDatabaseHandle();
-  } catch(PDOException $e) {
-    echo $e->getMessage();
-  }
+	$dbh = getDatabaseHandle();
+} catch(PDOException $e) {
+	echo $e->getMessage();
+}
 
 function getTaskRowInDb(){
 	global $dbh, $SANDBOX;
@@ -45,23 +53,24 @@ function createQualificationRequirement($row){
 	// require Worker_PercentAssignmentsApproved >= IntegerValue
 	if($percentApproved != ""){
 		$Worker_PercentAssignmentsApproved = array(
-		 "QualificationTypeId" => "000000000000000000L0",
-		 "Comparator" => "GreaterThanOrEqualTo",
-		 "IntegerValue" => $percentApproved
+			"QualificationTypeId" => "000000000000000000L0",
+			"Comparator" => "GreaterThanOrEqualTo",
+			"IntegerValues" => array($percentApproved + 0)
 		);
 
 		array_push($qualsArray, $Worker_PercentAssignmentsApproved);
-	}	
+	}
 
 	// require Worker_Locale == Country
 	$country = $row[0]["country"];
 	if($country != "" && $country != "All"){
 		$Worker_Locale = array(
-		 "QualificationTypeId" => "00000000000000000071",
-		 "Comparator" => "EqualTo",
-		 "LocaleValue" => array("Country" => $country)
+			"QualificationTypeId" => "00000000000000000071",
+			"Comparator" => "EqualTo",
+			"LocaleValues" => array(array("Country" => $country))
 		);
 		array_push($qualsArray, $Worker_Locale);
+		ChromePhp::log($Worker_Locale); 
 	}
 
 	if($_REQUEST['requireUniqueWorkers'] == "true"){
@@ -71,10 +80,11 @@ function createQualificationRequirement($row){
 		$noRepeatQualId = $row[0][$dbCol];
 
 		if($noRepeatQualId == null || $noRepeatQualId == ""){
-			$qual = turk50_createQualificationType(generateRandomString(), "This qualification is for people who have worked for me on this task before.", "Worked for me before", $SANDBOX);
-			// print_r($qual);
-			$noRepeatQualId = $qual->QualificationType->QualificationTypeId;
-
+			$qual = turk50_createQualificationType(date("Ymd-His").generateRandomString(), "This qualification is for people who have worked for me on this particular task (".$_REQUEST['task'].") before.", "Worked for me before", $SANDBOX);
+			error_log(print_r($qual,true),0);
+			ChromePhp::log("Created qualification", $qual); 
+			$noRepeatQualId = $qual['QualificationType']['QualificationTypeId'];
+			
 			if($SANDBOX) $sql = ("UPDATE retainer set noRepeatQualIdSandbox = :noRepeatQualId WHERE task = :task");
 			else $sql = ("UPDATE retainer set noRepeatQualIdLive = :noRepeatQualId WHERE task = :task");
 			$sth = $dbh->prepare($sql); 
@@ -82,8 +92,8 @@ function createQualificationRequirement($row){
 		}
 
 		$Unique_Workers_Qual = array(
-		 "QualificationTypeId" => (string)$noRepeatQualId,
-		 "Comparator" => "DoesNotExist"
+			"QualificationTypeId" => (string)$noRepeatQualId,
+			"Comparator" => "DoesNotExist"
 		);
 		array_push($qualsArray, $Unique_Workers_Qual);
 	}
@@ -100,7 +110,7 @@ function expireAllHits(){
 	$sth = $dbh->prepare($sql);
 	$sth->execute(array(':task' => $_REQUEST['task'], ':sandbox' => $SANDBOX));
 	$hits = $sth->fetchAll();
-// print_r($hits);
+	// print_r($hits);
 	foreach ($hits as $hit) {
 		$hitId = $hit['hit_Id'];
 		expireHit($hitId);
@@ -141,7 +151,7 @@ function isTargetReached(){
 
 	// If target has been reached
 	if($numWorkersOnline >= $numWorkersTarget){
-// fwrite($debug, "Target number of workers reached\n");
+		// fwrite($debug, "Target number of workers reached\n");
 		expireAllHits();
 		return true;
 	}
@@ -206,34 +216,128 @@ $task = $_REQUEST['task'];
 // $debugFile = "debugFile.txt";
 // $debug = fopen($debugFile, 'w');
 
-removeOldHITs();
+// FIXME Uncommented this so we are able to post multiple HITs
+// Could also try to removeOldHIT and post normally if not list and iterate over list here if string contains separator
+// characters, i.e. encodes list
 
+////
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+// removeOldHITs();
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+
+
+// Post HITs in retainer mode
 if(isset($_REQUEST['mode']) && $_REQUEST['mode'] == "retainer" || $_REQUEST['mode'] == "auto"){
 	// if($_REQUEST['mode'] == "auto") $url = $_REQUEST['url'];
-    if($_REQUEST['mode'] == "auto") { 
-        $url = $baseURL . "/taskLanding.php?task=" . $_REQUEST['task'] . "&amp;&amp;requireUniqueWorkers=" . $_REQUEST['requireUniqueWorkers'] . "&amp;&amp;url=" . urlencode($_REQUEST['url']) . "&amp;&amp;dbName=" . $tableName; 
-    }
-    else {
-        $url = $baseURL . "/Retainer/index.php?task=" . $_REQUEST['task'] . "&amp;&amp;dbName=" . $tableName . "&amp;&amp;thirdPartyTutUrl=" . urlencode($_REQUEST['thirdPartyTutURL']) . "&amp;&amp;thirdPartyInstrUrl=" . urlencode($_REQUEST['thirdPartyInstrURL']); 
-    }
+	if($_REQUEST['mode'] == "auto") { 
+		$url = $baseURL . "/taskLanding.php?task=" . $_REQUEST['task'] . "&amp;&amp;requireUniqueWorkers=" . $_REQUEST['requireUniqueWorkers'] . "&amp;&amp;url=" . urlencode($_REQUEST['url']) . "&amp;&amp;dbName=" . $tableName; 
+	}
+	else {
+		$url = $baseURL . "/Retainer/index.php?task=" . $_REQUEST['task'] . "&amp;&amp;dbName=" . $tableName . "&amp;&amp;tutPageUrl=" . urlencode($_REQUEST['tutPageUrl']) . "&amp;&amp;waitPageUrl=" . urlencode($_REQUEST['waitPageUrl']) . "&amp;&amp;instrPageUrl=" . urlencode($_REQUEST['instrPageUrl']); 
+	}
 
 	$numAssignableHits = 0;
+	$result = getTaskRowInDb();
+	$qualification = createQualificationRequirement($result);
 	while(!iShouldQuit()){
-	// fwrite($debug, "Start loop\n");
+		// fwrite($debug, "Start loop\n");
 
-	 	// Post HITs
+		// Post HITs
 		$result = getTaskRowInDb();
 		$qualification = createQualificationRequirement($result);
 		while(!isTargetReached() && ($numAssignableHits < ($result[0]["target_workers"] + 5))) //Number of HITs to post: target number of workers + 5
-		// while($numAssignableHits < 3) //Number of HITs to post: target number of workers + 5
+			// while($numAssignableHits < 3) //Number of HITs to post: target number of workers + 5
 		{
 			$minPrice = $result[0]["min_price"];
 			$maxPrice = $result[0]["max_price"];
 			$price = rand( $minPrice, $maxPrice ) / 100;
 
 			// turk50_hit($title,$description,$money,$url,$duration,$lifetime,$qualification,$maxAssignments,$AutoApprovalDelayInSeconds) 
-			$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 1800, 50000, $qualification, 1, $result[0]['task_keywords'],12000);
-			//$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 3600, 50000, $qualification, 1, $result[0]['task_keywords'],1200);
+			//$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 1800, 50000, $qualification, 1, $result[0]['task_keywords'],12000);
+			$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 5400, 50000, $qualification, 1, $result[0]['task_keywords'],43200);
 			if($hitResponse->HIT->Request->IsValid == "True"){
 				$hitId = $hitResponse->HIT->HITId;
 				if(!empty($hitId) && $hitId != ""){
@@ -284,7 +388,7 @@ if(isset($_REQUEST['mode']) && $_REQUEST['mode'] == "retainer" || $_REQUEST['mod
 				}
 			}
 
-	// fwrite($debug, $numAssignableHits . " - num Assignable hits\n");
+			// fwrite($debug, $numAssignableHits . " - num Assignable hits\n");
 			sleep(1); //Don't overload mturk with getHit
 		}
 		sleep(2);
@@ -292,8 +396,12 @@ if(isset($_REQUEST['mode']) && $_REQUEST['mode'] == "retainer" || $_REQUEST['mod
 
 	removeOldHITs();
 }
+// Post HITs in direct mode
 else if(isset($_REQUEST['mode']) && $_REQUEST['mode'] == "direct"){
 	// $url = $_REQUEST['URL'];
+
+	// This will fetch task from DB including its title, description and keywords
+	ChromePhp::log("inside post HITs in direct mode function"); 
 	$result = getTaskRowInDb();
 
 	$url = $baseURL . "/taskLanding.php?task=" . $_REQUEST['task'] . "&amp;&amp;requireUniqueWorkers=" . $_REQUEST['requireUniqueWorkers'] . "&amp;&amp;url=" . urlencode($_REQUEST['url']) . "&amp;&amp;dbName=" . $tableName;
@@ -306,36 +414,47 @@ else if(isset($_REQUEST['mode']) && $_REQUEST['mode'] == "direct"){
 
 	for($i = 0; $i < $numHITs; $i++){
 		// turk50_hit($title,$description,$money,$url,$duration,$lifetime,$qualification,$maxAssignments) 
-		$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 1800, 50000, $qualification, $numAssignments, $result[0]['task_keywords'],12000);
+		$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 1200, 50000, $qualification, $numAssignments, $result[0]['task_keywords'],12000);
 		//$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 3600, 50000, $qualification, $numAssignments, $result[0]['task_keywords'],1200);
-		$hitId = $hitResponse->HIT->HITId;
+		// ChromePhp::log($hitResponse); 
+		// ChromePhp::log("HITId is ", $hitResponse["HIT"]["HITId"]); 
+		$hitId = $hitResponse["HIT"]["HITId"];
 		$currentTime = time();
 		$sql = "INSERT INTO hits (task, hit_Id, time, sandbox) values (:task, :hit_Id, :time, :sandbox)";
 		$sth = $dbh->prepare($sql);
-		$sth->execute(array(':task' => $_REQUEST['task'], ':hit_Id' => $hitId, ':time' => $currentTime, ':sandbox' => $SANDBOX));
+		$sth->bindValue(':task', $_REQUEST['task']);
+		$sth->bindValue(':hit_Id', $hitId);
+		$sth->bindValue(':time', $currentTime);
+		//$sth->bindValue(':sandbox', $SANDBOX, SQLITE3_INTEGER);
+		$sth->bindValue(':sandbox', $SANDBOX);
+		$sth->execute();
+		
+		//$sth->execute(array(':task' => $_REQUEST['task'], ':hit_Id' => $hitId, ':time' => $currentTime, ':sandbox' => $SANDBOX));
+		
 		// $numAssignableHits++;
 		// fwrite($debug, "Post HIT\n");
+		ChromePhp::log("sandbox is", $SANDBOX);
 		sleep(1);
 	}
 }
 
 if(isset($noRepeatQualId)){
 	$sql = ("UPDATE retainer set noRepeatQualIdLive = :noRepeatQualId WHERE task = :task");
-	$sth = $dbh->prepare($sql); 
+	$sth = $dbh->prepare($sql);
 	$sth->execute(array(":task"=>$_REQUEST['task'], ":noRepeatQualId"=>$noRepeatQualId));
 }
 
 function generateRandomString($length = 50) {
-    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    $randomString = '';
-    for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[rand(0, strlen($characters) - 1)];
-    }
-    return $randomString;
+	$characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	$randomString = '';
+	for ($i = 0; $i < $length; $i++) {
+		$randomString .= $characters[rand(0, strlen($characters) - 1)];
+	}
+	return $randomString;
 }
 
 $sql = "UPDATE retainer SET done = 1 WHERE task = :task";
-$sth = $dbh->prepare($sql); 
+$sth = $dbh->prepare($sql);
 $sth->execute(array(':task' => $_REQUEST['task']));
 
 

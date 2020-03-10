@@ -144,7 +144,7 @@ function submitToTurk(ev) {
             data: "workerId="+gup("workerId"),
             success: function(d) {
                 timeWaited = d;
-                alert(timeWaited);
+                //alert(timeWaited);
             },
             error: function() {
                 setTurkMessage("message_error");
@@ -152,12 +152,14 @@ function submitToTurk(ev) {
             }
         });
 
-        var totalMoney = m + (timeWaited * centsPerSecondWaited); //adds the money earned by the worker for waiting in the retainer tool.
+        m = 0; 
+	var totalMoney = m + (timeWaited * centsPerSecondWaited); //adds the money earned by the worker for waiting in the retainer tool.
         $("#legion-money-field").attr("value", totalMoney);
 
 	// if( opts["useAlert"] ) {
-        	alert('Your HIT is being submitted. A quality check will be performed on your work, and you will be bonused up to $' + m + ' based on the results, in additon to $' + (timeWaited * centsPerSecondWaited) + ' for waiting. Generally, payments are processed within one hour.');
-	// }
+        	//alert('Your HIT is being submitted. A quality check will be performed on your work, and you will be bonused up to $' + m + ' based on the results, in additon to $' + (timeWaited * centsPerSecondWaited) + ' for waiting. Generally, payments are processed within one hour.');
+        	alert('Your HIT is being submitted. Generally, payments are processed within one hour.');
+    // }
     }
  //    else {
 	// if( opts["useAlert"] ) {

@@ -1,6 +1,7 @@
 <?php
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
+// error_log(".:: ".basename(__FILE__),0); // Debugging
 
 include("_db.php");
 $task = $_REQUEST['task'];
@@ -17,7 +18,7 @@ try {
 
   if($dbh) {
 	if ($role=='crowd') {
-		// Checking wheter the worker is already marked as being online:
+		// Checking whether the worker is already marked as being online:
 		$sth = $dbh->query("SELECT * FROM `whois_online` WHERE `id`='".$id."'");
 		$row = $sth->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_NEXT);
 		if($row){
@@ -40,17 +41,20 @@ try {
 		
 	// Counting all the online visitors:
 	$sth = $dbh->query("SELECT COUNT(*) AS count FROM `whois_online` WHERE `task`='".$task."'");
-	$row = $sth->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_NEXT);
+	$row1 = $sth->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_NEXT);
 	// Outputting the number for majority value as plain text:
 	//for testing: echo floor((intval($row['count'])-1)*.65);
 	//echo floor((intval($row['count']))*.65);
-	echo $row['count'];
-	
+ 	echo $row1['count'].' ';
+
 	// If you want to view who is online uncomment this
-// 	 $sth = $dbh->query("SELECT * FROM `whois_online` WHERE `task`='$task'");	
-// 	 while($row = $sth->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_NEXT)) {
-// 	 	print_r($row);
-// 	 }
+ 	 // $sth = $dbh->query("SELECT * FROM `whois_online` WHERE `task`='$task'");	
+ 	 $sth = $dbh->query("SELECT id FROM `whois_online` WHERE `task`='$task'");	
+ 	 while($row = $sth->fetch(PDO::FETCH_ASSOC, PDO::FETCH_ORI_NEXT)) {
+		print_r($row['id']);
+		echo ''."\n";
+ 	 }
+
 }
 
 ?>

@@ -1,6 +1,7 @@
 <?php
 error_reporting(E_ALL);
 ini_set("display_errors", 1);
+error_log(".:: ".basename(__FILE__),0); // Debugging
 
 include('_db.php');
 
@@ -13,14 +14,14 @@ include('_db.php');
 
 if( isset($_REQUEST['workerId']) && $dbh ) {
 
-	$worker = $_REQUEST['workerId'];
+    $worker = $_REQUEST['workerId'];
 	
-	$sql = "SELECT * FROM banned WHERE workerId=:workerId";
+	$sql = "SELECT COUNT(*) FROM banned WHERE workerId=:wId";
 	$sth = $dbh->prepare($sql); 
-	$sth->execute(array(':workerId'=>$worker));
-	$count = $sth->rowCount();
+	$sth->execute(array(':wId'=>$worker));
+    $count = $sth->fetchColumn();
 
-	echo $count;
+    echo $count;
 }
 
 ?>

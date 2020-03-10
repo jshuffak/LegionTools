@@ -1,442 +1,498 @@
 <?php
-	require_once 'mturk.lib.php';
 
-	require_once("Turk50.php");
-	// require_once("../amtKeys.php");
-	// require_once("../isSandbox.php");
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
 
-	$PAGE_SIZE = 100;  // Number of HITs per 'page'
+include("../../Retainer/php/_db.php");
 
-	/*
-	   var $validOps   = array("ApproveAssignment", "CreateHIT", "CreateQualificationType", "DisableHIT", "DisposeHIT", "ExtendHIT",
-	   "GetAccountBalance", "GetAssignmentsForHIT", "GetHIT", "GetQualificationRequests", "GetQualificationScore",
-	   "GetQualificationType", "GetRequesterStatistic", "GetReviewableHITs", "GrantQualification", "Help", "NotifyWorkers",
-	   "RejectAssignment", "SearchQualificationTypes", "UpdateQualificationScore", "UpdateQualificationType",
-	   "SetHITAsReviewing", "RegisterHITType", "SearchHITs", "ForceExpireHIT", "SetHITTypeNotification", "SendTestEventNotification",
-	   "GrantBonus", "GetFileUploadURL", "RejectQualificationRequest", "GetQualificationsForQualificationType");
-	*/   
+// AWS SDK
+require '../../Retainer/php/lib/aws-autoloader.php';
+
+// REMOVE FOR PRODUCTION
+//
+//
+//
+//
+//
+//
+//
+//
+//
+include '../../ChromePhp.php';
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
+$PAGE_SIZE = 100;  // Number of HITs per 'page'
+
+// $AccessKey = $_REQUEST['accessKey']; 
+// $SecretKey = $_REQUEST['secretKey'];
+// $SANDBOX   = $_REQUEST['useSandbox'];
 
 
-	function turk_debug($mt) {
-		echo "<br /><br />\n\nRawData<br />\n".$mt->RawData."\n\n<br /><br />";
-		echo "<br /><br />\n\nSOAPData<br />\n".$mt->SOAPData."\n\n<br /><br />";
+/**
+ * creates a client object for AWS either for MTurk's Sandbox or Production environments  
+ * @param $sandbox Whether to use sandbox (boolean, true => sandbox)
+ * @param $accessKey AWS MTurk IAM Access Key
+ * @param $secretKey AWS MTurk IAM Secret Key
+ * @return \Aws\MTurk\MTurkClient Client object
+ */
+function createClient($sandbox, $accessKey, $secretKey) {
 
-		echo $mt->Fault;
-		echo $mt->Error;	
+	// Put credentials in array for API call
+	$credentialsArray = array(
+		"key" => $accessKey,
+		"secret" => $secretKey,
+	);
+
+	// Request AWS SDK MTurk client either for sandbox or production MTurk
+	if ($sandbox) {
+		$client = new Aws\MTurk\MTurkClient([
+			'version' => 'latest',
+			'region' => 'us-east-1',
+			'endpoint' => 'https://mturk-requester-sandbox.us-east-1.amazonaws.com', // Use sandbox
+			'credentials' => $credentialsArray
+		]);
+	} else {
+		$client = new Aws\MTurk\MTurkClient([
+			'version' => 'latest',
+			'region' => 'us-east-1',
+			'endpoint' => 'https://mturk-requester.us-east-1.amazonaws.com', // Use production MTurk
+			'credentials' => $credentialsArray
+		]);
 	}
 
+	return $client;
+}
 
-	// function turk_easyHit($title,$description,$money,$url,$duration,$lifetime) {
-	// 	//turk_easyHit('donato sample','description',.05,'http://roc.cs.rochester.edu/donato/tukerpage.php');	   
-	// 		global $SANDBOX, $DEBUG, $AccessKey, $SecretKey;
+function turk50_hit($title,$description,$money,$url,$duration,$lifetime,$qualification,$maxAssignments,$keywords,$AutoApprovalDelayInSeconds) {
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
 
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey); 
 
-	// 	   $mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
+	// prepare ExternalQuestion
+	$Question =
+		"<ExternalQuestion xmlns='http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd'>" .
+		"<ExternalURL>$url</ExternalURL>" .
+		"<FrameHeight>800</FrameHeight>" .
+		"</ExternalQuestion>";
 
-	// 	   $mt->SetOperation('CreateHIT');
-	// 	   $mt->SetVar('Title', $title);
-	// 	   $mt->SetVar('Description',$description);
-	// 	   $mt->SetVar('Amount',$money);
-	// 	   $mt->SetVar('MaxAssignments',1);
-	// 	   $mt->SetVar('AssignmentDurationInSeconds',$duration);
-	// 	   $mt->SetVar('LifetimeInSeconds',$lifetime);
-	// 	   $mt->SetVar('Question',$url);
-	// 	   $mt->Invoke();
+	// prepare Request
+	$request = array(
+		"Title" => $title,
+		"Description" => $description,
+		"Question" => $Question,
+		"Reward" => (string) $money,
+		"AssignmentDurationInSeconds" => $duration + 0,
+		"LifetimeInSeconds" => $lifetime + 0,
+		"QualificationRequirements" => $qualification,
+		"MaxAssignments" => $maxAssignments + 0,
+		"Keywords" => $keywords,
+		"AutoApprovalDelayInSeconds" => $AutoApprovalDelayInSeconds + 0
+	);
 
-	// 	  turk_debug($mt);
-	// }
+	try {
+		// invoke MTurk SDK 
+		ChromePhP::log($client);
+		$HITResponse = $client->CreateHIT($request);
+		ChromePhP::log($client);
+		print_r($HITResponse); 
+		return $HITResponse;
+	} catch (RequestException $e) {
+		echo "Error with HIT creation"; 
+		print_r($e); 	
+	}
+	finally {
+		// log the function 
+		ChromePhP::log("Returning from turk50_hit()");
+	}
 
-    function turk50_hit($title,$description,$money,$url,$duration,$lifetime,$qualification,$maxAssignments,$keywords,$AutoApprovalDelayInSeconds) {
-    	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
-    	
-    	if($SANDBOX)
-    		$turk50 = new Turk50($AccessKey, $SecretKey);
-    	else
-    		$turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
-
-    	// prepare ExternalQuestion
-    	$Question =
-    	 "<ExternalQuestion xmlns='http://mechanicalturk.amazonaws.com/AWSMechanicalTurkDataSchemas/2006-07-14/ExternalQuestion.xsd'>" .
-    	 "<ExternalURL>$url</ExternalURL>" .
-    	 "<FrameHeight>600</FrameHeight>" .
-    	 "</ExternalQuestion>";
-
-    	// prepare Request
-    	$Request = array(
-    	 "Title" => $title,
-    	 "Description" => $description,
-    	 "Question" => $Question,
-    	 "Reward" => array("Amount" => $money, "CurrencyCode" => "USD"),
-    	 "AssignmentDurationInSeconds" => $duration,
-    	 "LifetimeInSeconds" => $lifetime,
-         "QualificationRequirement" => $qualification,
-         "MaxAssignments" => $maxAssignments,
-         "Keywords" => $keywords,
-         "AutoApprovalDelayInSeconds" => $AutoApprovalDelayInSeconds
-    	);
-
-    	// invoke CreateHIT
-    	$CreateHITResponse = $turk50->CreateHIT($Request);
-        // $hitId = $CreateHITResponse->HIT->HITId;
-        // $assignId = turk_easyHitToAssn($hitId);
-        return $CreateHITResponse;
-    	
-    }
+}
 
 
+function turk_easyApprove($assignmentNumber, $encouragement="Great job.") {
+	//venar303@gmail.com account
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
 
-	function turk_easyApprove($asn, $encouragement="") {
-			//venar303@gmail.com account
-	   global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey); 
+
+	$request = array(
+		"AssignmentId" => $assignmentNumber,
+		"OverrideRejection" => true,
+		"RequesterFeedback"=> $encouragement
+	); 
+
+	try {
+		// invoke MTurk SDK 
+		$approveAssignmentResponse = $client->approveAssignment($request);
+	} catch (RequestException $e) {
+		echo "Error with HIT approval"; 
+		ChromePhp::warn($e);
+		print_r($e); 	
+	}
+	finally {
+		// log the function 
+		ChromePhP::log("Returning from turk_easyApprove()");
+	}
+}	
 
 
-		$mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
+function turk_easyReject($assignmentNumber, $encouragement="") {
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
 
-		$mt->SetOperation('ApproveAssignment');
-		$mt->SetVar('AssignmentId', $asn);
-		//$mt->SetVar('RequesterFeedback', $encouragement);
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey); 
 
-		$result = $mt->Invoke();
+	$request = array(
+		"AssignmentId" => $assignmentNumber,
+		"RequesterFeedback"=> $encouragement
+	); 
 
-		if (!$mt->FinalData['Request']['IsValid'] ) {
-			echo "error with Approval";
-			print_r($mt);
+	try {
+		// invoke MTurk SDK 
+		$response= $client->rejectAssignment($request);
+		return $client;
+	} catch (RequestException $e) {
+		echo "Error with HIT rejection"; 
+		print_r($e); 	
+	}
+	finally {
+		// log the function 
+		ChromePhp::log("Returning from turk_easyReject()");
+	}
+}
+
+
+function turk_easyBonus($worker_id, $assignmentNumber, $bonus, $reason) { 
+
+	global $SANDBOX, $DEBUG, $AccessKey, $SecretKey;
+
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey); 
+
+	$request = array(
+		"AssignmentId" => $assignmentNumber,
+		"BonusAmount" => $bonus, 
+		"Reason" => $reason,
+		"WorkerId" => $worker_id
+	); 
+
+	try {
+		// invoke MTurk SDK 
+		$response= $client->sendBonus($request);
+		return $client;
+	} catch (RequestException $e) {
+		echo "Error with HIT bonusing"; 
+		print_r($e); 	
+	}
+	finally {
+		// log the function 
+		ChromePhp::log("Returning from turk_easyBonus()");
+	}
+}
+
+
+function turk_easyDispose($hitId) {
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
+
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey); 
+
+	$request = array(
+		"HITId" => $hitId
+	); 
+
+	try {
+		// invoke MTurk SDK 
+		$response= $client->deleteHIT($request);
+		return $client;
+	} catch (RequestException $e) {
+		echo "Error with HIT deletion"; 
+		print_r($e); 	
+	}
+	finally {
+		// log the function 
+		ChromePhp::log("Returning from turk_easyDispose()");
+	}
+}
+
+
+function turk50_getAllReviewableHits($typeOfReview) {
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
+
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey);
+
+	try {
+		$request = array(
+		);
+
+		// invoke MTurk SDK 
+		$response = null; 
+		if ($typeOfReview == "all") {
+			$response = $client->listHITs($request);
+		} else {
+			$response = $client->listReviewableHITs($request);
+		}	
+
+		$nextToken = $response["NextToken"]; 
+		$numPages = ceil($response["NumResults"] / $PAGE_SIZE);
+		ChromePhp::log("numresults is", $response["NumResults"]);
+
+		$resultArray = array(); 
+		for($i = 0; $i < count($response["HITs"]); $i++) { 
+			$resultArray[] = $response["HITs"][$i]["HITId"];
 		}
-		return $mt;
-	}	
 
-	function turk_easyReject($asn, $encouragement="") {
-			//venar303@gmail.com account
-	   global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
+		// if need to loop through all results, get the NextPageToken	
+		for($i = 2; $i < $numPages; $i++) {
+			$request = array(
+				"NextToken" => $nextToken
+			); 
+
+			$response = null; 
+			if ($typeOfReview == "all") {
+				$response = $client->listHITs($request);
+			} else {
+				$response = $client->listReviewableHITs($request);
+			}	
+			$nextToken = $response["NextToken"]; 
+
+			// add the remaining HITs 
+			for($j = 0; $j < count($response["HITs"]); $j++) { 
+				$resultArray[] = $response["HITs"][$j]["HITId"];
+			}
+		}	
+
+		// return array 
+		// ChromePhp::log($resultArray);
+		return $resultArray; 
 
 
-		$mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
+	} catch (RequestException $e) {
+		echo "Error with listing of reviewable HITs";
+		print_r($e); 
+	}
+	finally {
+		// log the function 
+		ChromePhp::log("Returning from turk_getAllReviewableHits()");
+	}
+}
 
-		$mt->SetOperation('RejectAssignment');
-		$mt->SetVar('AssignmentId', $asn);
-		//$mt->SetVar('RequesterFeedback', $encouragement);
 
-		$result = $mt->Invoke();
+function turk_easyExpireHit($hitId) {
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
 
-		if (!$mt->FinalData['Request']['IsValid'])
-			echo "error with Rejection";
-		return $mt;
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey);
+
+	// update the ExpireAt parameter to some time in the past to immediate expire the HIT
+	$request = array(
+		"HITId" => $hitId, 
+		"ExpireAt" => new DateTime('2000-01-01')
+	);
+
+	try {
+		// invoke MTurk SDK
+		$response= $client->updateExpirationForHIT($request);
+		return $response;
+	} catch (RequestException $e) {
+		echo "Error with HIT expiring";
+		print_r($e);
+	}
+	finally {
+		// log the function
+		ChromePhp::log("Returning from turk_easyExpireHit()");
 	}
 
+	// 1. get a list of all HITs
+	// 2. go through them and update expiration time to be in the past (which immediately expires them) 
 
-	function turk_easyBonus($worker_id, $assignment_id, $bonus, $reason) { 
 
-		global $SANDBOX, $DEBUG, $AccessKey, $SecretKey;
-		$mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
 
-		$mt->SetOperation('GrantBonus');
-		$mt->SetVar('AssignmentId', $assignment_id);
-		$mt->SetVar('BonusAmount',$bonus);
-		$mt->SetVar('Reason',$reason);
-		$mt->SetVar('WorkerId',$worker_id);
 
-		$mt->Invoke();
-		return $mt;
+}
+
+
+function turk_easyHitToAssn($hitId) {
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
+
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey);
+
+	$request = array(
+		"HITId" => $hitId
+	);
+
+	try {
+		// invoke MTurk SDK
+		$response= $client->listAssignmentsForHIT($request);
+		return $response;
+	} catch (RequestException $e) {
+		echo "Error with HIT listing assignments for HIT";
+		print_r($e);
+	}
+	finally {
+		// log the function
+		ChromePhp::log("Returning from turk_easyHitToAssn()");
 	}
 
+}
 
-	function turk_easyDispose($hitId) {
-			//venar303@gmail.com account
-	   global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
+function turk50_getHit($hitId){
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
 
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey);
 
-		$mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
+	$request = array(
+		"HITId" => $hitId
+	);
 
-		$mt->SetOperation('DisposeHIT');
-		$mt->SetVar('HITId', $hitId);
-		$result = $mt->Invoke();
-		if (!$mt->FinalData['Request']['IsValid'])
-			echo "error with disposal";
+	try {
+		// invoke MTurk SDK
+		$response= $client->getHIT($request);
+		return $response;
+	} catch (RequestException $e) {
+		echo "Error with HIT getting";
+		print_r($e);
+	}
+	finally {
+		// log the function
+		ChromePhp::log("Returning from turk_getHit()");
+	}
+}
 
-		return $mt;
+function turk50_getAccountBalance(){
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
+
+	if($SANDBOX)
+		$turk50 = new Turk50($AccessKey, $SecretKey);
+	else
+		$turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
+
+	$Request = array(
+		"HITId" => $hitId
+	);
+
+	return $turk50->GetAccountBalance();
+}
+
+function turk50_createQualificationType($name, $description, $keywords, $qualSandbox){
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
+
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey);
+
+	$request = array(
+		"Name" => $name, 
+		"Description" => $description, 
+		"Keywords" => $keywords,
+		"QualificationTypeStatus" => "Active", 
+		"AutoGranted" => true
+	);
+
+	try {
+		// invoke MTurk SDK
+		$response= $client->createQualificationType($request);
+		return $response;
+	} catch (RequestException $e) {
+		echo "Error with creating qualification type";
+		print_r($e);
+	}
+	finally {
+		// log the function
+		ChromePhp::log("Returning from turk_createQualificationType()");
 	}
 
-	function turk_easySearchHits() {
+}
 
-           global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-           
-                $mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
+function turk50_disposeQualificationType($qualificationTypeId){
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
 
-                $mt->SetOperation('SearchHITs');
-                $mt->SortProperty = "CreationTime";
-                $mt->SortDirection = "Descending";
-                $mt->setVar('PageSize',$PAGE_SIZE);
-                $result = $mt->Invoke();
-				//print_r($mt->FinalData);
-                return $mt->FinalData['HIT'];
-        }
-        
-    function turk50_search($pageNum) {
-    	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-    	
-    	if($SANDBOX)
-    		$turk50 = new Turk50($AccessKey, $SecretKey);
-    	else
-    		$turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey);
 
-    	$Request = array(
-	 		"PageSize" => $PAGE_SIZE,
-	 		"SortProperty" => "Enumeration",
-	 		"PageNumber" => $pageNum
-		);
-    	
-    	$search = $turk50->SearchHITs($Request);
-    	//print_r($search);
-    	if($search->SearchHITsResult->NumResults == 1)return array($search->SearchHITsResult->HIT);
-    	if($search->SearchHITsResult->NumResults > 0)return $search->SearchHITsResult->HIT;
-    	
-    }
-    
-    function turk50_searchReviewable($pageNum) {
-    	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-    	
-    	if( $SANDBOX ) {
-    		$turk50 = new Turk50($AccessKey, $SecretKey);
+	$request = array(
+		"QualificationTypeId" => $qualificationTypeId
+	);
+
+	try {
+		// invoke MTurk SDK
+		$response= $client->deleteQualificationType($request);
+		return $response;
+	} catch (RequestException $e) {
+		echo "Error with disposing of qualification type";
+		print_r($e);
 	}
-    	else {
-    		$turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
+	finally {
+		// log the function
+		ChromePhp::log("Returning from turk_disposeQualificationType()");
 	}
+}
 
-    	$Request = array(
-	 		"PageSize" => $PAGE_SIZE,
-	 		"SortProperty" => "Enumeration",
-	 		"PageNumber" => $pageNum
-		);
+function turk50_assignQualification($workerId, $qualificationTypeId, $qualSandbox){
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
 
-    	
-    	$search = $turk50->GetReviewableHITs($Request);
-    	//print_r($search);
-    	if($search->GetReviewableHITsResult->NumResults == 1) return array($search->GetReviewableHITsResult->HIT);
-    	if($search->GetReviewableHITsResult->NumResults > 0) return $search->GetReviewableHITsResult->HIT;
-    	
-    }
-    
-    function turk50_getNumHits() {
-    	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-    	
-    	if($SANDBOX)
-    		$turk50 = new Turk50($AccessKey, $SecretKey);
-    	else
-    		$turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey);
 
-    	$Request = array(
-	 		"PageSize" => $PAGE_SIZE,
-	 		"SortProperty" => "Enumeration"
-		);
-    	
-    	$search = $turk50->SearchHITs($Request);
-    	//print_r($search);
-    	return $search->SearchHITsResult->TotalNumResults;
-    	
-    }
-    
-    function turk50_getNumReviewableHits() {
-    	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-    	
-    	if($SANDBOX)
-    		$turk50 = new Turk50($AccessKey, $SecretKey);
-    	else
-    		$turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
+	$request = array(
+		"IntegerValue" => 1,
+		"QualificationTypeId" => $qualificationTypeId,
+		"WorkerId" => $workerId
+	);
 
-    	$Request = array(
-	 		"PageSize" => $PAGE_SIZE,
-	 		"SortProperty" => "Enumeration"
-		);
-    	
-    	$search = $turk50->GetReviewableHITs($Request);
-    	//print_r($search);
-    	return $search->GetReviewableHITsResult->TotalNumResults;
-    	
-    }
-    
-    function turk50_searchAllHits() {
-    	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-    	
-    	$totalNumHits = turk50_getNumHits();
-    	$numPages = ceil($totalNumHits / $PAGE_SIZE);
-    	$array = turk50_search(1);
-    	for($i = 2; $i <= $numPages; $i++)
-    	{
-    		$array = array_merge($array, turk50_search($i));
-    	}
-    	
-    	return $array;
-    }
-    
-    function turk50_getAllReviewableHits() {
-    	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-    	
-    	$totalNumHits = turk50_getNumReviewableHits();
-    	$numPages = ceil($totalNumHits / $PAGE_SIZE);
-    	$array = turk50_searchReviewable(1);
-    	for($i = 2; $i <= $numPages; $i++)
-    	{
-    		$array = array_merge($array, turk50_searchReviewable($i));
-    	}
-    	
-    	return $array;
-    }
-
-
-      function turk_easyExpireHit($hitId) {
-
-           global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
-
-                $mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
-
-                $mt->SetOperation('ForceExpireHIT');
-                $mt->setVar('HITId',$hitId);
-                $result = $mt->Invoke();
-
-		print_r($mt->FinalData);
-        }
-
-	function turk_easyGetReviewable() {
-	   global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-
-		$mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
-
-		$mt->SetOperation('GetReviewableHITs');
-		$mt->setVar('Status',"Reviewable");
-		$mt->setVar('PageSize',$PAGE_SIZE);
-		$result = $mt->Invoke();
-
-		if (isset ($mt->FinalData['HIT']))
-			$x = sizeOf($mt->FinalData['HIT']);
-		else
-			die("No hits to review");
-		$tempArray = array();
-		for ($i = 0; $i<$x ; $i++) {
-			if (isset($mt->FinalData['HIT'][$i]))
-				$val = $mt->FinalData['HIT'][$i]['HITId'][$i];
-			else
-				$val = $mt->FinalData['HIT']['HITId'];
-			$tempArray[] = $val;
-		}
-		return $tempArray;
+	try {
+		// invoke MTurk SDK
+		$response= $client->associateQualificationWithWorker($request);
+		return $response;
+	} catch (RequestException $e) {
+		echo "Error with assigning of qualification type";
+		print_r($e);
 	}
-
-	function turk_easyGetReviewing() {
-           global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey, $PAGE_SIZE;
-
-                $mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
-
-                $mt->SetOperation('GetReviewableHITs');
-                $mt->setVar('Status',"Reviewing");
-		$mt->setVar('PageSize',$PAGE_SIZE);
-                $result = $mt->Invoke();
-
-                if (isset ($mt->FinalData['HIT']))
-                        $x = sizeOf($mt->FinalData['HIT']);
-                else
-                        die("No hits to review");
-                $tempArray = array();
-                for ($i = 0; $i<$x ; $i++) {
-                        if (isset($mt->FinalData['HIT'][$i]))
-                                $val = $mt->FinalData['HIT'][$i]['HITId'][$i];
-                        else
-                                $val = $mt->FinalData['HIT']['HITId'];
-                        $tempArray[] = $val;
-                }
-                return $tempArray;
-        }
-
-	function turk_easyHitToAssn($hit) {
-		global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
-
-		$mt = new mturkinterface($AccessKey, $SecretKey, $SANDBOX);
-
-		$mt->SetOperation('GetAssignmentsForHIT');
-		$mt->SetVar('HITId', $hit);
-		$mt->Invoke();
-
-		return $mt->FinalData;
+	finally {
+		// log the function
+		ChromePhp::log("Returning from turk_assignQualification()");
 	}
+}
 
-    function turk50_getHit($hitId){
-        global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
-        
-        if($SANDBOX)
-            $turk50 = new Turk50($AccessKey, $SecretKey);
-        else
-            $turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
+function turk50_revokeQualification($workerId, $qualificationTypeId, $qualSandbox){
+	global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
 
-        $Request = array(
-            "HITId" => $hitId
-        );
+	// create the MTurk client object 
+	$client = createClient($SANDBOX, $AccessKey, $SecretKey);
 
-        return $turk50->GetHIT($Request);
-    }
+	$request = array(
+		"IntegerValue" => 1,
+		"QualificationTypeId" => $qualificationTypeId,
+		"WorkerId" => $workerId
+	);
 
-    function turk50_getAccountBalance(){
-        global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
-        
-        if($SANDBOX)
-            $turk50 = new Turk50($AccessKey, $SecretKey);
-        else
-            $turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
-
-        $Request = array(
-            "HITId" => $hitId
-        );
-
-        return $turk50->GetAccountBalance();
-    }
-
-    function turk50_createQualificationType($name, $description, $keywords, $qualSandbox){
-        global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
-        
-        if($qualSandbox)
-            $turk50 = new Turk50($AccessKey, $SecretKey);
-        else
-            $turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
-
-        $Request = array(
-            "Name" => $name,
-            "Description" => $description,
-            "Keywords" => $keywords,
-            "QualificationTypeStatus" => "Active",
-            "AutoGranted" => true
-        );
-
-        return $turk50->CreateQualificationType($Request);
-    }
-
-    function turk50_disposeQualificationType($qualificationTypeId){
-        global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
-        
-        if($SANDBOX)
-            $turk50 = new Turk50($AccessKey, $SecretKey);
-        else
-            $turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
-
-        $Request = array(
-            "QualificationTypeId" => $qualificationTypeId,
-        );
-
-        return $turk50->DisposeQualificationType($Request);
-    }
-
-    function turk50_assignQualification($workerId, $qualificationTypeId, $qualSandbox){
-        global $DEBUG, $SANDBOX, $AccessKey ,$SecretKey;
-        
-        if($qualSandbox)
-            $turk50 = new Turk50($AccessKey, $SecretKey);
-        else
-            $turk50 = new Turk50($AccessKey, $SecretKey, array("sandbox" => FALSE));
-
-        $Request = array(
-            "QualificationTypeId" => $qualificationTypeId,
-            "WorkerId" => $workerId,
-        );
-
-        return $turk50->AssignQualification($Request);
-    }
-
+	try {
+		// invoke MTurk SDK
+		$response= $client->disassociateQualificationFromWorker($request);
+		return $response;
+	} catch (RequestException $e) {
+		echo "Error with revoking of qualification type";
+		print_r($e);
+	}
+	finally {
+		// log the function
+		ChromePhp::log("Returning from turk_revokeQualification()");
+	}
+}        
 
 ?>

@@ -7,9 +7,10 @@ set_time_limit ( 10000);
 include("../../amtKeys.php");
 include("../../config.php");
 include("../../isSandbox.php");
-include("../../getDB.php");
 include 'turk_functions.php';
 
+$AccessKey = $_REQUEST['accessKey']; 
+$SecretKey = $_REQUEST['secretKey'];
 
 try {
     $dbh = getDatabaseHandle();
