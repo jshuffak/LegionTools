@@ -253,7 +253,7 @@ $(document).ready( function() {
 							url: "Overview/turk/getAnswers.php",
 							type: "POST",
 							async: true,
-							data: {task: $("#taskSession").val(), useSandbox: sandbox, accessKey: $("#accessKey").val(), secretKey: $("#secretKey").val(), mode: "retainer", requireUniqueWorkers: $("#requireUniqueWorkers").is(':checked'), tutPageUrl: tutPageUrl, waitPageUrl: waitPageUrl, instrPageUrl: instrPageUrl},
+							data: {task: $("#taskSession").val(), useSandbox: sandbox, accessKey: $("#accessKey").val(), secretKey: $("#secretKey").val(), mode: "retainer", requireUniqueWorkers: $("#requireUniqueWorkers").is(':checked'), recruitMastersWorkers: $("#recruitMastersWorkers").is(':checked'), tutPageUrl: tutPageUrl, waitPageUrl: waitPageUrl, instrPageUrl: instrPageUrl},
 							dataType: "text",
 							success: function(d) {
 								//console.log(d);
@@ -270,7 +270,7 @@ $(document).ready( function() {
 							url: "Overview/turk/getAnswers.php",
 							type: "POST",
 							async: true,
-							data: {task: $("#taskSession").val(), useSandbox: sandbox, accessKey: $("#accessKey").val(), secretKey: $("#secretKey").val(), mode: "auto", url: urlEscaped, requireUniqueWorkers: $("#requireUniqueWorkers").is(':checked'), accessKey: $("#accessKey").val(), secretKey: $("#secretKey").val()},
+							data: {task: $("#taskSession").val(), useSandbox: sandbox, accessKey: $("#accessKey").val(), secretKey: $("#secretKey").val(), mode: "auto", url: urlEscaped, requireUniqueWorkers: $("#requireUniqueWorkers").is(':checked'), recruitMastersWorkers: $("#recruitMastersWorkers").is(':checked'), accessKey: $("#accessKey").val(), secretKey: $("#secretKey").val()},
 							dataType: "text",
 							success: function(d) {
 								console.log(d);
@@ -333,6 +333,7 @@ $(document).ready( function() {
 							numHITs: $("#numHITs").val(),
 							numAssignments: $("#numAssignments").val(),
 							requireUniqueWorkers: $("#requireUniqueWorkers").is(':checked'),
+							recruitMastersWorkers: $("#recruitMastersWorkers").is(':checked'),
 						},
 						dataType: "text",
 						success: function (d) {

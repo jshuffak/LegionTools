@@ -62,6 +62,23 @@ function createQualificationRequirement($row){
 		array_push($qualsArray, $Worker_PercentAssignmentsApproved);
 	}
 
+	if ($_REQUEST['recruitMastersWorkers'] == "true"){
+		if($SANDBOX){
+			$Masters_Qualification = array(
+				"QualificationTypeId" => "2ARFPLSP75KLA8M8DH1HTEQVJT3SY6",
+				"Comparator" => "Exists"
+			);
+		}
+		else{
+			$Masters_Qualification = array(
+				"QualificationTypeId" => "2F1QJWKUDD8XADTFD2Q0G6UTO95ALH",
+				"Comparator" => "Exists"
+			);
+		}
+
+		array_push($qualsArray, $Masters_Qualification);
+	}
+
 	// require Worker_Locale == Country
 	$country = $row[0]["country"];
 	if($country != "" && $country != "All"){

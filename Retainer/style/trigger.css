@@ -16,3 +16,11 @@ body{
     overflow-x: hidden;
     height: 21em;
 }
+
+.checkbox-masters-workers {
+	margin-left: 20px;
+}
+
+.checkbox-masters-workers label {
+	font-weight: normal;
+}
