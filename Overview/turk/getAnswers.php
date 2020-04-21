@@ -11,7 +11,6 @@ include 'turk_functions.php';
 
 $AccessKey = $_REQUEST['accessKey'];
 $SecretKey = $_REQUEST['secretKey'];
-$SANDBOX = $_REQUEST['sandbox'];
 
 $task = $_REQUEST['task'];
 error_log("Task name: ".$task);
