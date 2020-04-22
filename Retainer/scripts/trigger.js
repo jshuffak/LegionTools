@@ -376,7 +376,7 @@ $(document).ready( function() {
 				$('#postHITs').removeAttr('disabled');
 				$('#expireHITs').removeAttr('disabled');
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/expireHITs.php failed";
 			}
 		});

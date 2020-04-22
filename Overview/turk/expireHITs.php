@@ -11,6 +11,7 @@ include 'turk_functions.php';
 
 $AccessKey = $_REQUEST['accessKey']; 
 $SecretKey = $_REQUEST['secretKey'];
+error_log(print_r($SANDBOX));
 
 try {
 	$dbh = getDatabaseHandle();
@@ -30,9 +31,9 @@ function expireHit($hitId){
 }
 
 
-$sql = ("SELECT * from hits WHERE task = :task");
+$sql = ("SELECT * from hits WHERE task = :task AND sandbox = :sandbox");
 $sth = $dbh->prepare($sql);
-$sth->execute(array(':task' => $_REQUEST['task']));
+$sth->execute(array(':task' => $_REQUEST['task'], ':sandbox' => $SANDBOX));
 $hits = $sth->fetchAll();
 
 foreach ($hits as $hit) {
@@ -40,7 +41,7 @@ foreach ($hits as $hit) {
 	$hitInfo = turk50_getHit($hitId);
 	$hitInfo = $hitInfo["HIT"];
 
-	ChromePhp::log($hitInfo); 
+	// ChromePhp::log($hitInfo); 
 	// ChromePhp::log(property_exists($hitInfo, "HITStatus"));
 	// if(property_exists($hitInfo, "HITStatus")){
 	switch($hitInfo["HITStatus"]) {
