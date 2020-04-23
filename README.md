@@ -1,4 +1,3 @@
-http://rochci.github.io/LegionTools
 # LegionTools
 LegionTools is a toolkit + UI that provides an easy way to recruit and route workers from Amazon Mechanical Turk to real-time and synchronous tasks.
 
@@ -34,9 +33,7 @@ LegionTools provides three key features for requesters:
 * When you are ready to review completed HITs, click `Reload` in the `Overview` section to load all reviewable HITs associated with a given task session.
 
 # Authors
-* [Mitchell Gordon](http://mgordon.me/ "Mitchell Gordon")
-* [Walter S. Lasecki](http://wslasecki.com/ "Walter S. Lasecki")
-* Falk Pollok
+* Dont ask us
 
 # Developer Overview
 After launch `index.php` is opened which includes scripts from the `Retainer/scripts` folder, most notably `trigger.js` which connects GUI elements with the PHP backend in `Retainer/php` via AJAX calls.
