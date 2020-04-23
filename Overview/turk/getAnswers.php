@@ -15,7 +15,7 @@ $SecretKey = $_REQUEST['secretKey'];
 $task = $_REQUEST['task'];
 error_log("Task name: ".$task);
 
-// include("../../ChromePhp.php"); 
+// include("../../// ChromePhp.php"); 
 
 // If key specifies use_file, use SQLite
 if($_REQUEST['accessKey'] == "use_file" && $_REQUEST['secretKey'] == "use_file"){
@@ -24,9 +24,9 @@ if($_REQUEST['accessKey'] == "use_file" && $_REQUEST['secretKey'] == "use_file")
 else {
 	$hash1= hash('sha256', $_REQUEST['accessKey']) . hash('sha256', $_REQUEST['secretKey']);
 	$tableName = hash('sha256', $hash1); 
-	// ChromePhp::log('Hello console!');
-	// ChromePhp::log($_SERVER);
-	// ChromePhp::warn('something went wrong!');
+	// // ChromePhp::log('Hello console!');
+	// // ChromePhp::log($_SERVER);
+	// // ChromePhp::warn('something went wrong!');
 }
 try {
 	$dbh = getDatabaseHandle();
@@ -87,7 +87,7 @@ function createQualificationRequirement($row){
 			"LocaleValues" => array(array("Country" => $country))
 		);
 		array_push($qualsArray, $Worker_Locale);
-		ChromePhp::log($Worker_Locale); 
+		// // ChromePhp::log($Worker_Locale); 
 	}
 
 	if($_REQUEST['requireUniqueWorkers'] == "true"){
@@ -99,7 +99,7 @@ function createQualificationRequirement($row){
 		if($noRepeatQualId == null || $noRepeatQualId == ""){
 			$qual = turk50_createQualificationType(date("Ymd-His").generateRandomString(), "This qualification is for people who have worked for me on this particular task (".$_REQUEST['task'].") before.", "Worked for me before", $SANDBOX);
 			error_log(print_r($qual,true),0);
-			ChromePhp::log("Created qualification", $qual); 
+			// // ChromePhp::log("Created qualification", $qual); 
 			$noRepeatQualId = $qual['QualificationType']['QualificationTypeId'];
 			
 			if($SANDBOX) $sql = ("UPDATE retainer set noRepeatQualIdSandbox = :noRepeatQualId WHERE task = :task");
@@ -418,7 +418,7 @@ else if(isset($_REQUEST['mode']) && $_REQUEST['mode'] == "direct"){
 	// $url = $_REQUEST['URL'];
 
 	// This will fetch task from DB including its title, description and keywords
-	ChromePhp::log("inside post HITs in direct mode function"); 
+	// // ChromePhp::log("inside post HITs in direct mode function"); 
 	$result = getTaskRowInDb();
 
 	$url = $baseURL . "/taskLanding.php?task=" . $_REQUEST['task'] . "&amp;&amp;requireUniqueWorkers=" . $_REQUEST['requireUniqueWorkers'] . "&amp;&amp;url=" . urlencode($_REQUEST['url']) . "&amp;&amp;dbName=" . $tableName;
@@ -433,8 +433,8 @@ else if(isset($_REQUEST['mode']) && $_REQUEST['mode'] == "direct"){
 		// turk50_hit($title,$description,$money,$url,$duration,$lifetime,$qualification,$maxAssignments) 
 		$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 1200, 50000, $qualification, $numAssignments, $result[0]['task_keywords'],12000);
 		//$hitResponse = turk50_hit($result[0]['task_title'], $result[0]['task_description'], $price, $url, 3600, 50000, $qualification, $numAssignments, $result[0]['task_keywords'],1200);
-		// ChromePhp::log($hitResponse); 
-		// ChromePhp::log("HITId is ", $hitResponse["HIT"]["HITId"]); 
+		// // ChromePhp::log($hitResponse); 
+		// // ChromePhp::log("HITId is ", $hitResponse["HIT"]["HITId"]); 
 		$hitId = $hitResponse["HIT"]["HITId"];
 		$currentTime = time();
 		$sql = "INSERT INTO hits (task, hit_Id, time, sandbox) values (:task, :hit_Id, :time, :sandbox)";
@@ -450,7 +450,7 @@ else if(isset($_REQUEST['mode']) && $_REQUEST['mode'] == "direct"){
 		
 		// $numAssignableHits++;
 		// fwrite($debug, "Post HIT\n");
-		ChromePhp::log("sandbox is", $SANDBOX);
+		// // ChromePhp::log("sandbox is", $SANDBOX);
 		sleep(1);
 	}
 }

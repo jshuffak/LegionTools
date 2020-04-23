@@ -101,10 +101,10 @@ if( $dbh ) {
 		$qual = turk50_createQualificationType(date("Ymd-His").generateRandomString(), "This qualification is for people who have worked for me on this task (".$_REQUEST['task'].") before.", "Worked for me before", $SANDBOX);
 		error_log("Qualification: ".print_r($qual,true),0);
 
-		//ChromePhp::log($qual); 
+		// // ChromePhp::log($qual); 
 		$noRepeatQualId = $qual["QualificationType"]["QualificationTypeId"];		
 		error_log(date("Ymd-His").":Task(".$task.") generated one qualifitcation type(".$noRepeatQualId.") from uniqueWorkers.php. (Sandbox:".$SANDBOX.",reset:". isset($_REQUEST['reset']).")\n",0);
-		ChromePhp::log(date("Ymd-His").":Task(".$task.") generated one qualifitcation type (".$noRepeatQualId.") from uniqueWorkers.php. (Sandbox:".$SANDBOX.",reset:". isset($_REQUEST['reset']).")");
+		// ChromePhp::log(date("Ymd-His").":Task(".$task.") generated one qualifitcation type (".$noRepeatQualId.") from uniqueWorkers.php. (Sandbox:".$SANDBOX.",reset:". isset($_REQUEST['reset']).")");
 
 		if($SANDBOX) $sql = ("UPDATE retainer set noRepeatQualIdSandbox = :noRepeatQualId WHERE task = :task");
 		else $sql = ("UPDATE retainer set noRepeatQualIdLive = :noRepeatQualId WHERE task = :task");
@@ -114,7 +114,7 @@ if( $dbh ) {
 		echo "New qualification(".$noRepeatQualId.") is generated in ";
 		if($SANDBOX) echo "SANDBOX\n";
 		else echo "LIVE MTURK\n";
-		ChromePhp::log("New qualification (".$noRepeatQualId.") is generated in " . $SANDBOX);
+		// ChromePhp::log("New qualification (".$noRepeatQualId.") is generated in " . $SANDBOX);
 
 	} else {
 		// echo "The experiment will use qualification (".$noRepeatQualId.")";
@@ -123,11 +123,11 @@ if( $dbh ) {
 	if(isset($_REQUEST['assignQualification']) && $_REQUEST['assignQualification'] == "true"){
 		$mt = turk50_assignQualification($_REQUEST['workerId'], $noRepeatQualId, $SANDBOX);
 		error_log("uniqueWorkers.php :: assignQualification: ".$_REQUEST['assignQualification']."WorkerID: ".$_REQUEST['workerId'],0);
-		ChromePhp::log("uniqueWorkers.php :: assignQualification: ".$_REQUEST['assignQualification']."WorkerID: ".$_REQUEST['workerId']);
+		// ChromePhp::log("uniqueWorkers.php :: assignQualification: ".$_REQUEST['assignQualification']."WorkerID: ".$_REQUEST['workerId']);
 	}
 	if(isset($_REQUEST['revokeQualification']) && $_REQUEST['revokeQualification'] == "true"){
 		$mt = turk50_revokeQualification($_REQUEST['workerId'], $noRepeatQualId, $SANDBOX);
-		ChromePhp::log("uniqueWorkers.php :: revokeQualification: ".$_REQUEST['revokeQualification']."WorkerID: ".$_REQUEST['workerId']);
+		// ChromePhp::log("uniqueWorkers.php :: revokeQualification: ".$_REQUEST['revokeQualification']."WorkerID: ".$_REQUEST['workerId']);
 	}
 }
 

@@ -18,7 +18,7 @@ require '../../Retainer/php/lib/aws-autoloader.php';
 //
 //
 //
-include '../../ChromePhp.php';
+include '../../// ChromePhp.php';
 //
 //
 //
@@ -104,9 +104,9 @@ function turk50_hit($title,$description,$money,$url,$duration,$lifetime,$qualifi
 
 	try {
 		// invoke MTurk SDK 
-		ChromePhP::log($client);
+		// ChromePhp::log($client);
 		$HITResponse = $client->CreateHIT($request);
-		ChromePhP::log($client);
+		// ChromePhp::log($client);
 		print_r($HITResponse); 
 		return $HITResponse;
 	} catch (RequestException $e) {
@@ -115,7 +115,7 @@ function turk50_hit($title,$description,$money,$url,$duration,$lifetime,$qualifi
 	}
 	finally {
 		// log the function 
-		ChromePhP::log("Returning from turk50_hit()");
+		// ChromePhp::log("Returning from turk50_hit()");
 	}
 
 }
@@ -139,12 +139,12 @@ function turk_easyApprove($assignmentNumber, $encouragement="Great job.") {
 		$approveAssignmentResponse = $client->approveAssignment($request);
 	} catch (RequestException $e) {
 		echo "Error with HIT approval"; 
-		ChromePhp::warn($e);
+		// ChromePhp::warn($e);
 		print_r($e); 	
 	}
 	finally {
 		// log the function 
-		ChromePhP::log("Returning from turk_easyApprove()");
+		// ChromePhp::log("Returning from turk_easyApprove()");
 	}
 }	
 
@@ -170,7 +170,7 @@ function turk_easyReject($assignmentNumber, $encouragement="") {
 	}
 	finally {
 		// log the function 
-		ChromePhp::log("Returning from turk_easyReject()");
+		// ChromePhp::log("Returning from turk_easyReject()");
 	}
 }
 
@@ -199,7 +199,7 @@ function turk_easyBonus($worker_id, $assignmentNumber, $bonus, $reason) {
 	}
 	finally {
 		// log the function 
-		ChromePhp::log("Returning from turk_easyBonus()");
+		// ChromePhp::log("Returning from turk_easyBonus()");
 	}
 }
 
@@ -224,7 +224,7 @@ function turk_easyDispose($hitId) {
 	}
 	finally {
 		// log the function 
-		ChromePhp::log("Returning from turk_easyDispose()");
+		// ChromePhp::log("Returning from turk_easyDispose()");
 	}
 }
 
@@ -249,7 +249,7 @@ function turk50_getAllReviewableHits($typeOfReview) {
 
 		$nextToken = $response["NextToken"]; 
 		$numPages = ceil($response["NumResults"] / $PAGE_SIZE);
-		ChromePhp::log("numresults is", $response["NumResults"]);
+		// ChromePhp::log("numresults is", $response["NumResults"]);
 
 		$resultArray = array(); 
 		for($i = 0; $i < count($response["HITs"]); $i++) { 
@@ -277,7 +277,7 @@ function turk50_getAllReviewableHits($typeOfReview) {
 		}	
 
 		// return array 
-		// ChromePhp::log($resultArray);
+		// // ChromePhp::log($resultArray);
 		return $resultArray; 
 
 
@@ -287,7 +287,7 @@ function turk50_getAllReviewableHits($typeOfReview) {
 	}
 	finally {
 		// log the function 
-		ChromePhp::log("Returning from turk_getAllReviewableHits()");
+		// ChromePhp::log("Returning from turk_getAllReviewableHits()");
 	}
 }
 
@@ -314,7 +314,7 @@ function turk_easyExpireHit($hitId) {
 	}
 	finally {
 		// log the function
-		ChromePhp::log("Returning from turk_easyExpireHit()");
+		// ChromePhp::log("Returning from turk_easyExpireHit()");
 	}
 
 	// 1. get a list of all HITs
@@ -346,7 +346,7 @@ function turk_easyHitToAssn($hitId) {
 	}
 	finally {
 		// log the function
-		ChromePhp::log("Returning from turk_easyHitToAssn()");
+		// ChromePhp::log("Returning from turk_easyHitToAssn()");
 	}
 
 }
@@ -371,7 +371,7 @@ function turk50_getHit($hitId){
 	}
 	finally {
 		// log the function
-		ChromePhp::log("Returning from turk_getHit()");
+		// ChromePhp::log("Returning from turk_getHit()");
 	}
 }
 
@@ -414,7 +414,7 @@ function turk50_createQualificationType($name, $description, $keywords, $qualSan
 	}
 	finally {
 		// log the function
-		ChromePhp::log("Returning from turk_createQualificationType()");
+		// ChromePhp::log("Returning from turk_createQualificationType()");
 	}
 
 }
@@ -439,7 +439,7 @@ function turk50_disposeQualificationType($qualificationTypeId){
 	}
 	finally {
 		// log the function
-		ChromePhp::log("Returning from turk_disposeQualificationType()");
+		// ChromePhp::log("Returning from turk_disposeQualificationType()");
 	}
 }
 
@@ -465,7 +465,7 @@ function turk50_assignQualification($workerId, $qualificationTypeId, $qualSandbo
 	}
 	finally {
 		// log the function
-		ChromePhp::log("Returning from turk_assignQualification()");
+		// ChromePhp::log("Returning from turk_assignQualification()");
 	}
 }
 
@@ -491,7 +491,7 @@ function turk50_revokeQualification($workerId, $qualificationTypeId, $qualSandbo
 	}
 	finally {
 		// log the function
-		ChromePhp::log("Returning from turk_revokeQualification()");
+		// ChromePhp::log("Returning from turk_revokeQualification()");
 	}
 }        
 

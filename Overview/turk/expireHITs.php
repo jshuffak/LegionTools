@@ -15,9 +15,9 @@ error_log(print_r($SANDBOX));
 
 try {
 	$dbh = getDatabaseHandle();
-	// ChromePhp::log('Hello console!');
-	// ChromePhp::log($_SERVER);
-	// ChromePhp::warn('something went wrong!');
+	// // ChromePhp::log('Hello console!');
+	// // ChromePhp::log($_SERVER);
+	// // ChromePhp::warn('something went wrong!');
 } catch(PDOException $e) {
 	echo $e->getMessage();
 }
@@ -41,8 +41,8 @@ foreach ($hits as $hit) {
 	$hitInfo = turk50_getHit($hitId);
 	$hitInfo = $hitInfo["HIT"];
 
-	// ChromePhp::log($hitInfo); 
-	// ChromePhp::log(property_exists($hitInfo, "HITStatus"));
+	// // ChromePhp::log($hitInfo); 
+	// // ChromePhp::log(property_exists($hitInfo, "HITStatus"));
 	// if(property_exists($hitInfo, "HITStatus")){
 	switch($hitInfo["HITStatus"]) {
 		case "Disposed": 
