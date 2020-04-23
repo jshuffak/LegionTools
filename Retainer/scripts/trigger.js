@@ -58,7 +58,7 @@ $(document).ready( function() {
 				}
 				$("#taskSessionLoad").val($("#taskSession").val());
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "Sending number of workers to loadTask in updateSessionList() failed";
 			}
 		});
@@ -84,7 +84,7 @@ $(document).ready( function() {
 				updateSessionsList()
 				setInterval(function(){updateSessionsList()}, 30000);
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/login.php failed";
 			}
 		});
@@ -106,7 +106,8 @@ $(document).ready( function() {
 			dataType: "json",
 			success: function (d) {
 				console.log(d);
-			}, error: function (a, b, c) {
+			},
+			error: function (a, b, c) {
 				console.log("ERROR DEBUG");
 			}
 		});
@@ -151,7 +152,7 @@ $(document).ready( function() {
 				$('#deleteExperiment').removeAttr('disabled');
 
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/addNewTask.php failed";
 			}
 		});
@@ -169,7 +170,7 @@ $(document).ready( function() {
 			success: function(d) {
 
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/updatePrice.php failed";
 			}
 		});
@@ -187,7 +188,7 @@ $(document).ready( function() {
 			success: function(d) {
 
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/updateTargetNumWorkers.php failed";
 			}
 		});
@@ -210,7 +211,7 @@ $(document).ready( function() {
 			success: function(d) {
 
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/stopRecruiting.php failed";
 			}
 		});
@@ -258,7 +259,7 @@ $(document).ready( function() {
 							success: function(d) {
 								//console.log(d);
 							},
-							fail: function() {
+							error: function() {
 								statusbar.innerHTML = "Sending number of workers in getAnswers() failed";
 							}
 						});
@@ -275,13 +276,13 @@ $(document).ready( function() {
 							success: function(d) {
 								console.log(d);
 							},
-							fail: function() {
+							error: function() {
 								statusbar.innerHTML = "Sending number of workers in getAnswers() pt.2 failed";
 							}
 						});
 					}
 				},
-				fail: function() {
+				error: function() {
 					statusbar.innerHTML = "Sending number of workers failed";
 				}
 			});
@@ -342,7 +343,7 @@ $(document).ready( function() {
 							$('#postHITs').removeAttr('disabled');
 							$('#expireHITs').removeAttr('disabled');
 						},
-						fail: function () {
+						error: function () {
 							statusbar.innerHTML = "ajax POST to php/getAnswers.php failed";
 						}
 					});
@@ -401,7 +402,7 @@ $(document).ready( function() {
 			success: function(d) {
 				taskData = d;
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/loadTask.php failed";
 			}
 		});
@@ -470,7 +471,7 @@ $(document).ready( function() {
 			success: function(d) {
 				statusbar.innerHTML = "Update success";
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/updateTask.php failed";
 			}
 		});
@@ -716,7 +717,7 @@ $(document).ready( function() {
 				// document.getElementById("numOnline").innerHTML= "There are " + d + " worker(s) online for this task";
 				numOnline = d;
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "setOnline failed!";
 			},
 		});
@@ -732,7 +733,7 @@ $(document).ready( function() {
 					//
 					//statusbar.innerHTML = "Fire successful";
 				},
-				fail: function() {
+				error: function() {
 					statusbar.innerHTML = "Clear queue failed!";
 				}
 			});
@@ -746,7 +747,7 @@ $(document).ready( function() {
 				success: function(d) {
 
 				},
-				fail: function() {
+				error: function() {
 					statusbar.innerHTML = "ajax POST to php/updateReleased.php failed";
 				}
 			});
@@ -788,12 +789,12 @@ $(document).ready( function() {
 						success: function(d) {
 
 						},
-						fail: function() {
+						error: function() {
 							statusbar.innerHTML = "ajax POST to php/updateReleased.php failed";
 						}
 					});
 				},
-				fail: function() {
+				error: function() {
 					statusbar.innerHTML = "Clear queue failed!";
 				}
 			});
@@ -825,7 +826,7 @@ $(document).ready( function() {
 			success: function(d) {
 				//
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/updateWaitingInstructions.php failed";
 			}
 		});
@@ -870,7 +871,7 @@ $(document).ready( function() {
 					success: function(d) {
 						statusbar.innerHTML = d;
 					},
-					fail: function() {
+					error: function() {
 						statusbar.innerHTML = "requireUniqueWorkers ajax POST to php/tempKeyStore.php failed";
 					}
 				});
@@ -882,7 +883,7 @@ $(document).ready( function() {
 					success: function(d) {
 						statusbar.innerHTML = d;
 					},
-					fail: function() {
+					error: function() {
 						statusbar.innerHTML = "requireUniqueWorkers ajax POST to php/uniqueWorkers.php failed";
 					}
 				});
@@ -908,7 +909,7 @@ $(document).ready( function() {
 				success: function(d) {
 					statusbar.innerHTML = "Reset success";
 				},
-				fail: function() {
+				error: function() {
 					statusbar.innerHTML = "resetUniqueWorkers ajax POST to php/uniqueWorkers.php failed";
 				}
 			});
@@ -931,7 +932,7 @@ $(document).ready( function() {
 					statusbar.innerHTML = "Keys deleted successfully";
 					$('#requireUniqueWorkers').prop('checked', false);        
 				},
-				fail: function() {
+				error: function() {
 					statusbar.innerHTML = "resetUniqueWorkers ajax POST to php/tempKeyStore.php failed";
 				}
 			});
@@ -952,7 +953,7 @@ $(document).ready( function() {
 				updateSessionsList();
 				statusbar.innerHTML = "Copied to " + newTask;
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "Copying failed";
 			}
 		});
@@ -973,7 +974,7 @@ $(document).ready( function() {
 					statusbar.innerHTML = "Deleted " + $("#taskSession").val();
 					$("#taskSessionLoad").val("---");
 				},
-				fail: function() {
+				error: function() {
 					statusbar.innerHTML = "Deleting failed";
 				}
 			});
@@ -991,7 +992,7 @@ $(document).ready( function() {
 			success: function(d) {
 				taskData = d;
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/loadTask.php failed";
 			}
 		});
@@ -1020,7 +1021,7 @@ $(document).ready( function() {
 			success: function(d) {
 				taskData = d;
 			},
-			fail: function() {
+			error: function() {
 				statusbar.innerHTML = "ajax POST to php/loadTask.php failed";
 			}
 		});
